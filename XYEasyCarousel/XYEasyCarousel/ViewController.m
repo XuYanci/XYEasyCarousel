@@ -41,7 +41,7 @@
 
 #pragma mark - XYEasyCarouselDataSource
 - (NSUInteger)numberOfItemsInEasyCarousel:(XYEasyCarousel *)carousel {
-    return UINT16_MAX;
+    return _carouselArray.count;
 }
 
 //- (NSURL *)urlForItemInEasyCarouselAtIndex:(NSUInteger)itemIndex {
@@ -49,12 +49,14 @@
 //}
 
 - (UIImage *)imageForItemInEasyCarouselAtIndex:(NSUInteger)itemIndex {
-    NSUInteger index = itemIndex % _carouselArray.count;
-    return [_carouselArray objectAtIndex:index];
+  
+    return [_carouselArray objectAtIndex:itemIndex];
 }
 
 #pragma mark - XYEasyCarouselDelegate 
-
+- (void)easyCarousel:(id)sender didClickOnItemAtIndex:(NSUInteger)itemIndex {
+    NSLog(@"click on item index %ld",itemIndex);
+}
 
 #pragma mark - getter and setter
 

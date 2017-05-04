@@ -9,7 +9,9 @@
 #import <UIKit/UIKit.h>
 @class XYEasyCarousel;
 @protocol XYEasyCarouselDataSource <NSObject>
+@required
 - (NSUInteger)numberOfItemsInEasyCarousel:(XYEasyCarousel *)carousel;
+@optional
 - (NSURL *)urlForItemInEasyCarouselAtIndex:(NSUInteger)itemIndex;
 - (UIImage *)imageForItemInEasyCarouselAtIndex:(NSUInteger)itemIndex;
 @end

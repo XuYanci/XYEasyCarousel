@@ -7,9 +7,31 @@
 //
 
 #import "XYEasyCarousel.h"
-
+#import <SDWebImage/UIImageView+WebCache.h>
 
 static NSString *const kCellIdentifier = @"cellIdentifier";
+
+
+@interface XYEasyCarouselCollectionViewCell : UICollectionViewCell
+@property (nonatomic,strong)UIImageView *imageView;
+@end
+
+@implementation XYEasyCarouselCollectionViewCell
+
+- (void)layoutSubviews {
+    _imageView.frame = self.contentView.bounds;
+    [super layoutSubviews];
+}
+
+- (UIImageView *)imageView {
+    if (!_imageView) {
+        _imageView = [[UIImageView alloc]init];
+        [self.contentView addSubview:_imageView];
+    }
+    return _imageView;
+}
+
+@end
 
 @interface XYEasyCarousel()<UICollectionViewDelegate,UICollectionViewDataSource>
 @property (nonatomic,strong) UICollectionView *collectionView;
@@ -23,7 +45,10 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
         unsigned imageForItem:1;
     }_datasourceHas;    /*! 数据源存在标识 */
     struct {
+        unsigned didClickOnItemAtIndex:1;
     }_delegateHas;      /*! 数据委托存在标识 */
+    
+    NSUInteger count;
 }
 
 /*
@@ -53,32 +78,32 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
 #pragma mark - datasource
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
     if (_datasourceHas.numberOfItems) {
-        return [_dataSource numberOfItemsInEasyCarousel:self];
+        count = [_dataSource numberOfItemsInEasyCarousel:self];
+        return UINT16_MAX;
     }
     return 0;
 }
 
 - (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
-    
-    UICollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:kCellIdentifier forIndexPath:indexPath];
+    XYEasyCarouselCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:kCellIdentifier forIndexPath:indexPath];
     if (_datasourceHas.imageForItem) {
-        cell.contentView.layer.contents = (id)[_dataSource imageForItemInEasyCarouselAtIndex:indexPath.row].CGImage;
+        cell.imageView.image = [_dataSource imageForItemInEasyCarouselAtIndex:indexPath.row % count];
     }
     else if(_datasourceHas.urlForItem) {
-        NSURL *url = [_dataSource urlForItemInEasyCarouselAtIndex:indexPath.row];
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-            NSData *imageData = [NSData dataWithContentsOfURL:url];
-            UIImage *image = [UIImage imageWithData:imageData];
-            dispatch_async(dispatch_get_main_queue(), ^{
-                cell.contentView.layer.contents = (id)image.CGImage;
-            });
-        });
+        NSURL *url = [_dataSource urlForItemInEasyCarouselAtIndex:indexPath.row % count];
+        [cell.imageView sd_setImageWithURL:url placeholderImage:nil];
     }
     return cell;;
 }
 
 
 #pragma mark - delegate
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    if (_delegateHas.didClickOnItemAtIndex) {
+        [_delegate easyCarousel:self didClickOnItemAtIndex:indexPath.row % count];
+    }
+}
+
 #pragma mark - user events
 #pragma mark - functions
 
@@ -105,7 +130,10 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
 
 
 - (void)setDelegate:(id<XYEasyCarouselDelegate>)delegate {
-    
+    _delegate = delegate;
+    if ([delegate respondsToSelector:@selector(easyCarousel:didClickOnItemAtIndex:)]) {
+        _delegateHas.didClickOnItemAtIndex = 1;
+    }
 }
 
 - (void)setNeedsReload {
@@ -174,7 +202,7 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
         _collectionView.pagingEnabled = YES;
         _collectionView.dataSource = self;
         _collectionView.delegate = self;
-        [_collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:kCellIdentifier];
+        [_collectionView registerClass:[XYEasyCarouselCollectionViewCell class] forCellWithReuseIdentifier:kCellIdentifier];
     }
     return _collectionView;
 }
