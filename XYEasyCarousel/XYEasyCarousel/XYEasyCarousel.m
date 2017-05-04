@@ -154,9 +154,18 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
                                                       paddingBottom:0
                                                          cellHeight:self.bounds.size.height
                                                         cellSpacing:0
-                                                          cellCount:1] animated:YES completion:^(BOOL finished) {
-        [weakSelf.collectionView reloadData];
+                                                          cellCount:1] animated:NO completion:^(BOOL finished) {
+        
     }];
+    
+    [weakSelf.collectionView reloadData];
+    
+    /** Simply center */
+    NSUInteger c = [_dataSource numberOfItemsInEasyCarousel:self];
+    c = c * UINT8_MAX;
+    [weakSelf.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:c inSection:0]
+                                    atScrollPosition:UICollectionViewScrollPositionNone
+                                            animated:NO];
 }
 - (void)setFrame:(CGRect)frame {
     [super setFrame:frame];
