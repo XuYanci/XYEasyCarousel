@@ -9,23 +9,19 @@
 #import <UIKit/UIKit.h>
 @class XYEasyCarousel;
 @protocol XYEasyCarouselDataSource <NSObject>
-
 - (NSUInteger)numberOfItemsInEasyCarousel:(XYEasyCarousel *)carousel;
-
+- (NSURL *)urlForItemInEasyCarouselAtIndex:(NSUInteger)itemIndex;
+- (UIImage *)imageForItemInEasyCarouselAtIndex:(NSUInteger)itemIndex;
 @end
 
 @protocol XYEasyCarouselDelegate <NSObject>
-
+- (void)easyCarousel:(id)sender didClickOnItemAtIndex:(NSUInteger)itemIndex;
 @end
 
 
 @interface XYEasyCarousel : UIView
 @property (nonatomic,weak) id <XYEasyCarouselDataSource> dataSource;
 @property (nonatomic,weak) id <XYEasyCarouselDelegate> delegate;
-
-
-
-
 
 /**
  重载数据
