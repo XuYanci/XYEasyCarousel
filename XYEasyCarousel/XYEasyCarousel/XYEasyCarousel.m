@@ -10,7 +10,7 @@
 #import <SDWebImage/UIImageView+WebCache.h>
 
 static NSString *const kCellIdentifier = @"cellIdentifier";
-
+static NSUInteger const kScrollTimeInterval = 1;
 
 @interface XYEasyCarouselCollectionViewCell : UICollectionViewCell
 @property (nonatomic,strong)UIImageView *imageView;
@@ -50,17 +50,9 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
         unsigned didClickOnItemAtIndex:1;
     }_delegateHas;      /*! 数据委托存在标识 */
     
-    NSUInteger count;
+    NSUInteger _numbersOfItems;
+    BOOL _isDraging;
 }
-
-/*
-// Only override drawRect: if you perform custom drawing.
-// An empty implementation adversely affects performance during animation.
-- (void)drawRect:(CGRect)rect {
-    // Drawing code
-}
-*/
-
 
 #pragma mark - life cycle
 - (id)initWithFrame:(CGRect)frame {
@@ -86,7 +78,7 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
 #pragma mark - datasource
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
     if (_datasourceHas.numberOfItems) {
-        count = [_dataSource numberOfItemsInEasyCarousel:self];
+        _numbersOfItems = [_dataSource numberOfItemsInEasyCarousel:self];
         return UINT16_MAX;
     }
     return 0;
@@ -95,10 +87,10 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
 - (__kindof UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     XYEasyCarouselCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:kCellIdentifier forIndexPath:indexPath];
     if (_datasourceHas.imageForItem) {
-        cell.imageView.image = [_dataSource imageForItemInEasyCarouselAtIndex:indexPath.row % count];
+        cell.imageView.image = [_dataSource imageForItemInEasyCarouselAtIndex:indexPath.row % _numbersOfItems];
     }
     else if(_datasourceHas.urlForItem) {
-        NSURL *url = [_dataSource urlForItemInEasyCarouselAtIndex:indexPath.row % count];
+        NSURL *url = [_dataSource urlForItemInEasyCarouselAtIndex:indexPath.row % _numbersOfItems];
         [cell.imageView sd_setImageWithURL:url placeholderImage:nil];
     }
     
@@ -109,21 +101,26 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
 #pragma mark - delegate
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     if (_delegateHas.didClickOnItemAtIndex) {
-        [_delegate easyCarousel:self didClickOnItemAtIndex:indexPath.row % count];
+        [_delegate easyCarousel:self didClickOnItemAtIndex:indexPath.row % _numbersOfItems];
     }
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(startDisplayLink) object:nil];
     [self stopDisplayLink];
+    _isDraging = YES;
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    if (!_isDraging) {
+        return;
+    }
     double offset_x = scrollView.contentOffset.x;
     double width = scrollView.frame.size.width;
-    NSUInteger pageIndex = (uint16_t)(offset_x / width) % count;
+    NSUInteger pageIndex = (uint16_t)(offset_x / width) % _numbersOfItems;
     self.pageControl.currentPage = pageIndex;
     [self performSelector:@selector(startDisplayLink) withObject:nil afterDelay:1];
+    _isDraging = NO;
 }
 
 
@@ -134,8 +131,6 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
 - (void)commonInit {
     [self addSubview:self.collectionView];
     [self addSubview:self.pageControl];
-    
-    
 }
 
 - (void)setDataSource:(id<XYEasyCarouselDataSource>)dataSource {
@@ -152,8 +147,6 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
         _datasourceHas.imageForItem = 1;
     }
 }
-
-
 
 - (void)setDelegate:(id<XYEasyCarouselDelegate>)delegate {
     _delegate = delegate;
@@ -198,8 +191,10 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
     self.pageControl.currentPage = 0;
     
     /** start timer */
-    [self stopDisplayLink];
-    [self startDisplayLink];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self stopDisplayLink];
+        [self startDisplayLink];
+    });
 }
 - (void)setFrame:(CGRect)frame {
     [super setFrame:frame];
@@ -213,27 +208,23 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
 {
     self.displayLink = [CADisplayLink displayLinkWithTarget:self
                                                    selector:@selector(handleDisplayLink:)];
-    self.displayLink.frameInterval = 60;
-
+#if TARGET_IPHONE_SIMULATOR
+    self.displayLink.frameInterval = kScrollTimeInterval * 60 * 2;
+#else
+    self.displayLink.frameInterval = kScrollTimeInterval * 60;
+#endif
+    
     [self.displayLink addToRunLoop:[NSRunLoop currentRunLoop]
                            forMode:NSDefaultRunLoopMode];
 }
 
 - (void)handleDisplayLink:(CADisplayLink *)displayLink
 {
-    
-    //do something
-    NSUInteger currentPage = self.pageControl.currentPage;
-    currentPage ++;
-    currentPage = currentPage % count;
-    
-    self.pageControl.currentPage = currentPage;
-    
     double offset_x = self.collectionView.contentOffset.x;
     double width = self.collectionView.frame.size.width;
     NSUInteger rowIndex = (uint16_t)(offset_x / width);
-
     [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:rowIndex + 1 inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:YES];
+    self.pageControl.currentPage = (rowIndex + 1) % _numbersOfItems;
 }
 
 - (void)stopDisplayLink
