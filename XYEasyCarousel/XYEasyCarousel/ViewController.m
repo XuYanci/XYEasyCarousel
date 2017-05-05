@@ -24,25 +24,9 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
-    [self.view addSubview:self.easyCarousel];
-    [self.easyCarousel setFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, 200.0)];
-    _carouselArray = @[
-                        [UIImage imageNamed:@"1"],
-                        [UIImage imageNamed:@"2"],
-                        [UIImage imageNamed:@"3"],
-                        [UIImage imageNamed:@"4"],
-                        [UIImage imageNamed:@"5"],
-                        ];
-    
-    _carouselUrlArray = @[
-                          [NSURL URLWithString:@"http://android-wallpapers.25pp.com//fs08/2016/10/12/2/2000_33b2a736fc1d6b8c4e3974f955c473e2_900x675.jpg"],
-                          [NSURL URLWithString:@"http://android-wallpapers.25pp.com//fs08/2016/10/12/7/2000_2bd7dfab6c4c30f6aeab0b6fe1af009b_900x675.jpg"],
-                          [NSURL URLWithString:@"http://android-wallpapers.25pp.com//fs08/2016/10/10/3/2000_541cfc7e46816a68e7820a1878dc4d89_900x675.jpg"],
-                          [NSURL URLWithString:@"http://android-wallpapers.25pp.com//fs08/2016/10/10/6/2000_84adc5a83af493968407378535ec3f07_900x675.jpg"],
-                          [NSURL URLWithString:@"http://android-wallpapers.25pp.com//fs08/2016/10/10/6/2000_deed7ff967f407056157ca290ece7ce3_900x675.jpg"],
-                          ];
-    [self.easyCarousel reloadData];
-}
+    self.title = @"EasyCarousel";
+    [self commonInit];
+ }
 
 
 
@@ -81,6 +65,28 @@
                                                 handler:nil]];
     [self presentViewController:alertCtrl animated:YES completion:nil];
     
+}
+
+#pragma mark - funcs
+- (void)commonInit {
+    [self.view addSubview:self.easyCarousel];
+    [self.easyCarousel setFrame:CGRectMake(0, 64.0, [UIScreen mainScreen].bounds.size.width, 200.0)];
+    _carouselArray = @[
+                       [UIImage imageNamed:@"1"],
+                       [UIImage imageNamed:@"2"],
+                       [UIImage imageNamed:@"3"],
+                       [UIImage imageNamed:@"4"],
+                       [UIImage imageNamed:@"5"],
+                       ];
+    
+    _carouselUrlArray = @[
+                          [NSURL URLWithString:@"http://android-wallpapers.25pp.com//fs08/2016/10/12/2/2000_33b2a736fc1d6b8c4e3974f955c473e2_900x675.jpg"],
+                          [NSURL URLWithString:@"http://android-wallpapers.25pp.com//fs08/2016/10/12/7/2000_2bd7dfab6c4c30f6aeab0b6fe1af009b_900x675.jpg"],
+                          [NSURL URLWithString:@"http://android-wallpapers.25pp.com//fs08/2016/10/10/3/2000_541cfc7e46816a68e7820a1878dc4d89_900x675.jpg"],
+                          [NSURL URLWithString:@"http://android-wallpapers.25pp.com//fs08/2016/10/10/6/2000_84adc5a83af493968407378535ec3f07_900x675.jpg"],
+                          [NSURL URLWithString:@"http://android-wallpapers.25pp.com//fs08/2016/10/10/6/2000_deed7ff967f407056157ca290ece7ce3_900x675.jpg"],
+                          ];
+    [self.easyCarousel reloadData];
 }
 
 #pragma mark - getter and setter

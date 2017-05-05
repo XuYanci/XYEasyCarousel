@@ -131,6 +131,7 @@ static NSUInteger const kScrollTimeInterval = 1;
 - (void)commonInit {
     [self addSubview:self.collectionView];
     [self addSubview:self.pageControl];
+    
 }
 
 - (void)setDataSource:(id<XYEasyCarouselDataSource>)dataSource {
@@ -176,7 +177,9 @@ static NSUInteger const kScrollTimeInterval = 1;
                                                           cellCount:1] animated:NO completion:^(BOOL finished) {
         
     }];
+ 
     
+    self.collectionView.contentInset = UIEdgeInsetsZero;
     [weakSelf.collectionView reloadData];
     
     /** Simply center */
