@@ -35,6 +35,8 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
 
 @interface XYEasyCarousel()<UICollectionViewDelegate,UICollectionViewDataSource>
 @property (nonatomic,strong) UICollectionView *collectionView;
+@property (nonatomic,strong) UIPageControl *pageControl;
+@property (nonatomic,strong) CADisplayLink *displayLink;
 @end
 
 @implementation XYEasyCarousel {
@@ -71,6 +73,12 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
 
 - (void)layoutSubviews {
     self.collectionView.frame = self.bounds;
+    [self.pageControl sizeToFit];
+    CGRect rectPageControl = self.pageControl.frame;
+    rectPageControl.origin.x = (self.bounds.size.width / 2) - (rectPageControl.size.width / 2);
+    rectPageControl.origin.y = self.bounds.size.height - rectPageControl.size.height;
+    self.pageControl.frame = rectPageControl;
+    
     [self _reloadDataIfNeeded];
     [super layoutSubviews];
 }
@@ -93,6 +101,7 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
         NSURL *url = [_dataSource urlForItemInEasyCarouselAtIndex:indexPath.row % count];
         [cell.imageView sd_setImageWithURL:url placeholderImage:nil];
     }
+    
     return cell;;
 }
 
@@ -104,12 +113,29 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
     }
 }
 
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(startDisplayLink) object:nil];
+    [self stopDisplayLink];
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    double offset_x = scrollView.contentOffset.x;
+    double width = scrollView.frame.size.width;
+    NSUInteger pageIndex = (uint16_t)(offset_x / width) % count;
+    self.pageControl.currentPage = pageIndex;
+    [self performSelector:@selector(startDisplayLink) withObject:nil afterDelay:1];
+}
+
+
 #pragma mark - user events
 #pragma mark - functions
 
 
 - (void)commonInit {
     [self addSubview:self.collectionView];
+    [self addSubview:self.pageControl];
+    
+    
 }
 
 - (void)setDataSource:(id<XYEasyCarouselDataSource>)dataSource {
@@ -161,15 +187,59 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
     [weakSelf.collectionView reloadData];
     
     /** Simply center */
-    NSUInteger c = [_dataSource numberOfItemsInEasyCarousel:self];
-    c =  (UINT16_MAX/2) - ((UINT16_MAX/2) % c);
-    [weakSelf.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:c inSection:0]
+    NSUInteger numberOfItems = [_dataSource numberOfItemsInEasyCarousel:self];
+    NSUInteger centerIndexRow = numberOfItems ;
+    centerIndexRow =  (UINT16_MAX/2) - ((UINT16_MAX/2) % centerIndexRow);
+    
+    [weakSelf.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:centerIndexRow inSection:0]
                                     atScrollPosition:UICollectionViewScrollPositionNone
                                             animated:NO];
+    self.pageControl.numberOfPages = numberOfItems;
+    self.pageControl.currentPage = 0;
+    
+    /** start timer */
+    [self stopDisplayLink];
+    [self startDisplayLink];
 }
 - (void)setFrame:(CGRect)frame {
     [super setFrame:frame];
     [self setNeedsReload];
+}
+
+#pragma mark - functions 
+
+
+- (void)startDisplayLink
+{
+    self.displayLink = [CADisplayLink displayLinkWithTarget:self
+                                                   selector:@selector(handleDisplayLink:)];
+    self.displayLink.frameInterval = 60;
+
+    [self.displayLink addToRunLoop:[NSRunLoop currentRunLoop]
+                           forMode:NSDefaultRunLoopMode];
+}
+
+- (void)handleDisplayLink:(CADisplayLink *)displayLink
+{
+    
+    //do something
+    NSUInteger currentPage = self.pageControl.currentPage;
+    currentPage ++;
+    currentPage = currentPage % count;
+    
+    self.pageControl.currentPage = currentPage;
+    
+    double offset_x = self.collectionView.contentOffset.x;
+    double width = self.collectionView.frame.size.width;
+    NSUInteger rowIndex = (uint16_t)(offset_x / width);
+
+    [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:rowIndex + 1 inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:YES];
+}
+
+- (void)stopDisplayLink
+{
+    [self.displayLink invalidate];
+    self.displayLink = nil;
 }
 #pragma mark - notification
 #pragma mark - getter and setter
@@ -215,4 +285,12 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
     }
     return _collectionView;
 }
+
+- (UIPageControl *)pageControl {
+    if (!_pageControl) {
+        _pageControl = [[UIPageControl alloc]init];
+    }
+    return _pageControl;
+}
 @end
+
