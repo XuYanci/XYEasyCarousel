@@ -162,7 +162,7 @@ static NSString *const kCellIdentifier = @"cellIdentifier";
     
     /** Simply center */
     NSUInteger c = [_dataSource numberOfItemsInEasyCarousel:self];
-    c = c * UINT8_MAX;
+    c =  (UINT16_MAX/2) - ((UINT16_MAX/2) % c);
     [weakSelf.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:c inSection:0]
                                     atScrollPosition:UICollectionViewScrollPositionNone
                                             animated:NO];
