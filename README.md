@@ -2,8 +2,6 @@
 ![converage](	https://img.shields.io/coveralls/jekyll/jekyll.svg)
 ![license](https://img.shields.io/github/license/mashape/apistatus.svg)
 
-XYEasyCarousel 是一个公用控件，常见于新闻里面的主题显示。我之所以想写是因为突然想到一种特别的方式可以来实现，这里我使用 `UICollectionView` 和 `UIPageControl` 来构建它。 实现它的方式很有趣！
-
 XYEasyCarousel is an public common control, it usally use in news for displaying main topic . i write for it because i think it can also do that like this method , here i use uicollectionview and uipagecontrol to build it. it is funny how i implement it !
 
 
