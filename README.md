@@ -1,5 +1,5 @@
 ![Build Status](https://travis-ci.org/msaps/MSSTabbedPageViewController.svg?branch=develop)
-![converage](	https://img.shields.io/coveralls/jekyll/jekyll.svg)
+![converage](https://img.shields.io/coveralls/jekyll/jekyll.svg)
 ![license](https://img.shields.io/github/license/mashape/apistatus.svg)
 
 XYEasyCarousel 是一个公用控件，常用语新闻的轮播图显示。 我写这个是因为我觉得能够用一种比较特别的方式来实现 。 这里我使用UICollectionView以及UIPageControl来构建它，实现它的方式非常有意思!
