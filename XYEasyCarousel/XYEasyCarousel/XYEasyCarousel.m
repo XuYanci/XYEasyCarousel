@@ -226,7 +226,7 @@ static NSUInteger const kScrollTimeInterval = 1;
     self.displayLink = [CADisplayLink displayLinkWithTarget:self
                                                    selector:@selector(handleDisplayLink:)];
 #if TARGET_IPHONE_SIMULATOR
-    self.displayLink.frameInterval = kScrollTimeInterval * 60 * 2;
+    self.displayLink.frameInterval = kScrollTimeInterval * 60;
 #else
     self.displayLink.frameInterval = kScrollTimeInterval * 60;
 #endif
